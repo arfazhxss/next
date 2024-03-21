@@ -12,7 +12,7 @@ export default defineSchema({
 
     files: defineTable({
         song: v.id("_storage"),
-        image: v.optional(v.id("storage")),
+        image: v.optional(v.id("_storage")),
         ownerId: v.id("users"),
         title: v.string(),
     })  
