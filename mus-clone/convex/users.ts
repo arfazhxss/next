@@ -7,7 +7,7 @@ export const store = mutation({
     args: {},
     handler: async (ctx) => {
         const identity = await ctx.auth.getUserIdentity();
-        if (!identity) { throw new ConvexError("Called storeUser without authenticated User")};
+        if (!identity) { throw new ConvexError("Called storeUser without an authenticated User")};
         
         // check if user is already in the database
         const user = await ctx.db
@@ -16,9 +16,14 @@ export const store = mutation({
                 q.eq("tokenIdentifier", identity.tokenIdentifier))
             .unique();
         
+        // if user exists, return the userId
         if (user !== null) { return user._id; }
+
         const userId = await ctx.db.insert("users", {
-            
+            tokenIdentifier: identity.tokenIdentifier,
+            email: identity.email!,
+            fullName: identity.name!,
+            imageUrl: identity.profileUrl,
         })
         return userId;
     }

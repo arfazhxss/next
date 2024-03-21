@@ -5,7 +5,7 @@ export default defineSchema({
     users: defineTable({
         tokenIdentifier: v.string(),
         email: v.string(),
-        fullname: v.string(),
+        fullName: v.string(),
         imageUrl: v.optional(v.string()),
     })  
         .index("by_token", ["tokenIdentifier"]),
@@ -26,5 +26,4 @@ export default defineSchema({
         .index("by_file", ["fileId"])
         .index("by_user", ["userId"])
         .index("by_user_file", ["userId", "fileId"])
-
 })
