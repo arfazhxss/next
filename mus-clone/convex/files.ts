@@ -19,14 +19,36 @@ export const list = query({
                 let imageUrl: string | null = null;
                 if (file.image) { imageUrl = await ctx.storage.getUrl(file.image); }
 
+                // check if user is already in the database
+                const user = await ctx.db
+                    .query("users")
+                    .withIndex("by_token", 
+                        (q) => q
+                        .eq("tokenIdentifier", identity.tokenIdentifier)
+                    )
+                    .unique();
+
+                // if user exists, return the userId
+                if (user === null) { throw new ConvexError("User doesn't exist in the database!"); }
+
+                // check if the user has favorite 
                 const favorite = await ctx.db
                                         .query("userfavorites")
                                         .withIndex("by_user_file", 
-                                        (q) => q
+                                            (q) => q
                                             .eq("userId", file.ownerId)
                                             .eq("fileId", file._id)
                                         )
-                                        .unique()
+                                        .unique() 
+                
+                const owner = await ctx.db.get(file.ownerId)
+
+                return {
+                    ...file,
+                    songUrl,
+                    imageUrl,
+                    favorite: favorite? true : false,
+                }
             })
         )
     }
