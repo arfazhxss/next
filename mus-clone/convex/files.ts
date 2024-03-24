@@ -1,96 +1,76 @@
+/**
+ * This TypeScript module provides functionality to interact with files in a Convex application.
+ * It includes queries to list files and a mutation to save a song's storage ID.
+ */
+
 import { ConvexError } from "convex/values";
 import { query } from "./_generated/server";
 
 /**
- * Retrieves a list of files from the Convex database.
+ * Defines a query named `list` that retrieves and processes information about files.
  * 
- * This query function requires the user to be authenticated.
- * It fetches the user identity using `ctx.auth.getUserIdentity()`.
- * If the identity is not found, it throws a `ConvexError` with the message "Unauthorized".
- * 
- * The function then queries the Convex database to collect all the files using `ctx.db.query("files").collect()`.
- * 
- * For each file, it performs the following operations:
- * 1. Retrieves the URL of the song file using `ctx.storage.getUrl(file.song)`.
- * 2. If the file has an image, it retrieves the URL of the image file using `ctx.storage.getUrl(file.image)`.
- * 
- * It checks if the user exists in the database by querying the "users" collection using the user's token identifier.
- * If the user is not found, it throws a `ConvexError` with the message "User doesn't exist in the database!".
- * 
- * It checks if the user has favorited the current file by querying the "userfavorites" collection using the user's ID and the file's ID.
- * 
- * It retrieves the owner of the file using `ctx.db.get(file.ownerId)`.
- * 
- * Finally, it constructs an object with the file's data, including the song URL, image URL, and favorite status.
- * 
- * The function returns an array of these objects using `Promise.all()` to handle the asynchronous processing of each file.
- * 
- * @returns {Promise<Array<{
- *   _id: string,
- *   name: string,
- *   song: string,
- *   image: string | null,
- *   ownerId: string,
- *   songUrl: string,
- *   imageUrl: string | null,
- *   favorite: boolean
- * }>>}  - A promise that resolves to an array of objects representing the files with their associated data.
- * @throws {ConvexError} - If the user is not authenticated or if the user doesn't exist in the database.
+ * @returns {Promise} A promise that resolves to an array of file objects with additional
+ *          metadata such as songUrl, imageUrl, and favorite status.
+ * @throws {ConvexError} Throws an error if the user is unauthorized or doesn't exist in the database.
  */
 export const list = query({
     args: {},
     handler: async (ctx) => {
+        // Verifies the user's identity. Throws an error if identity is not found (Unauthorized).
         const identity = await ctx.auth.getUserIdentity();
         if (!identity) { throw new ConvexError("Unauthorized"); }
 
-        const files = await ctx.db  
-                            .query("files")
-                            .collect();
+        // Retrieves all file entries from the database.
+        const files = await ctx.db.query("files").collect();
 
+        // Maps over the files to fetch related data and checks for user's favorites.
         return Promise.all(
-            files.map( async (file) => { 
-                const songUrl = await ctx.storage.getUrl(file.song); 
-                let imageUrl: string | null = null;
-                if (file.image) { imageUrl = await ctx.storage.getUrl(file.image); }
+            files.map(async (file) => {
+                // Get the URLs for the song and the image from storage.
+                const songUrl = await ctx.storage.getUrl(file.song);
+                let imageUrl = file.image ? await ctx.storage.getUrl(file.image) : null;
 
-                // check if user is already in the database
+                // Check for user existence in the database using their token identifier.
                 const user = await ctx.db
                     .query("users")
-                    .withIndex("by_token", 
-                        (q) => q
-                        .eq("tokenIdentifier", identity.tokenIdentifier)
-                    )
+                    .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
                     .unique();
-
-                // if user exists, return the userId
                 if (user === null) { throw new ConvexError("User doesn't exist in the database!"); }
 
-                // check if the user has favorite 
+                // Check if the current file is a favorite of the user.
                 const favorite = await ctx.db
-                                        .query("userfavorites")
-                                        .withIndex("by_user_file", 
-                                            (q) => q
-                                            .eq("userId", user._id)
-                                            .eq("fileId", file._id)
-                                        )
-                                        .unique() 
+                    .query("userfavorites")
+                    .withIndex("by_user_file", (q) => q.eq("userId", user._id).eq("fileId", file._id))
+                    .unique()
 
+                // Get additional details about the file's owner.
                 const owner = await ctx.db.get(file.ownerId)
 
+                // Constructs the final file object with URLs and favorite status.
                 return {
                     ...file,
                     songUrl,
                     imageUrl,
-                    favorite: favorite? true : false,
+                    favorite: favorite !== null,
                 }
             })
         )
     }
 })
 
+/**
+ * Defines a mutation named `saveSongStorageId` to save a song's storage ID with its title.
+ * 
+ * @param {v.id} saveSongStorageId The ID of the storage where the song is saved.
+ * @param {v.string()} title The title of the song.
+ * 
+ * @note The `args` object is defined with `saveSongStorageId` and `title` as its properties,
+ * but the mutation handler definition is incomplete in this provided code.
+ */
 export const saveSongStorageId = mutation({
     args: {
         saveSongStorageId: v.id("_storage"),
         title: v.string(),
     },
+    // The handler function for the mutation should be defined here.
 })
