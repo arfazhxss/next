@@ -4,7 +4,7 @@
  */
 
 import { ConvexError } from "convex/values";
-import { query } from "./_generated/server";
+import { query, mutation } from "./_generated/server" // Importing the `query` and `mutation` helper from the Convex-generated server code
 
 /**
  * Defines a query named `list` that retrieves and processes information about files.
