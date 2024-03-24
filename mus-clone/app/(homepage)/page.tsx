@@ -16,45 +16,15 @@ import { cn } from "@/lib/utils";
  * provides functionality for playing music files.
  */
 const Home = () => {
-    /**
-     * Mutation used to store a user in the database.
-     * This is used to store the user's favorite songs in the database.
-     */
-    const store = useMutation(api.users.store);
-    /**
-     * Query used to fetch a list of all files in the database.
-     */
-    const songList = useQuery(api.files.list);
-    /**
-     * The Id of the currently playing song.
-     * This is used to keep track of which song is currently playing.
-     */
-    const [fileId, setFileId]  = useState<Id<"files"> | null> (null);
-    /**
-     * The URL of the currently playing song.
-     * This is used to play the song in the browser.
-     */
-    const [currentSong, setCurrentSong] = useState('');
-    /**
-     * The title of the currently playing song.
-     */
-    const [title, setTitle] = useState('title');
-    /**
-     * The name of the artist of the currently playing song.
-     */
-    const [artist, setArtist] = useState('');
-    /**
-     * The URL of the cover art of the currently playing song.
-     */
-    const [coverArt, setCoverArt] = useState<string | null>('');
-    /**
-     * Whether or not to display only the user's favorite songs.
-     */
-    const [showFavorites, setShowFavorites] = useState(false);
-    /**
-     * The index of the currently playing song in the filtered song list.
-     */
-    const [currentIndex, setCurrentIndex] = useState<number>(-1);
+    const store = useMutation(api.users.store);                         // Mutation used to store a user in the database. This is used to store the user's favorite songs in the database.
+    const songList = useQuery(api.files.list);                          // Query used to fetch a list of all files in the database.
+    const [fileId, setFileId] = useState<Id<"files"> | null>(null);     // The Id of the currently playing song. This is used to keep track of which song is currently playing.
+    const [currentSong, setCurrentSong] = useState('');                 // The URL of the currently playing song. This is used to play the song in the browser.
+    const [title, setTitle] = useState('title');                        // The title of the currently playing song.
+    const [artist, setArtist] = useState('');                           // The name of the artist of the currently playing song.
+    const [coverArt, setCoverArt] = useState<string | null>('');        // The URL of the cover art of the currently playing song.
+    const [showFavorites, setShowFavorites] = useState(false);          // Whether or not to display only the user's favorite songs.
+    const [currentIndex, setCurrentIndex] = useState<number>(-1);       // The index of the currently playing song in the filtered song list.
 
     /**
      * Handles the logic for playing the next song in the filtered song list.
@@ -114,5 +84,7 @@ const Home = () => {
      * @param {FileWithUrls} file - The file object containing song URLs and metadata.
      */
     const playSong = (file: FileWithUrls) => {
+    }
+}
 
 export default Home;
