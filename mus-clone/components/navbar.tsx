@@ -6,7 +6,7 @@ import { AddSongModal } from "@/app/(homepage)/_components/add-song-modal";
 export const Navbar = () => {
     return (
         <nav className="bg-slate-950 py-4">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+            {/* <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
                 <Link href="/" className="text-white font-bold text-xl">
                     BeatWave
                 </Link>
@@ -14,7 +14,7 @@ export const Navbar = () => {
                     <AddSongModal />
                     <UserButton />
                 </div>
-            </div>
+            </div> */}
         </nav>
     );
 };

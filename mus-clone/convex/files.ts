@@ -3,7 +3,7 @@
  * It includes queries to list files and a mutation to save a song's storage ID.
  */
 
-import { ConvexError } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { query, mutation } from "./_generated/server"; // Importing the `query` and `mutation` helper from the Convex-generated server code
 import { FileWithUrls } from "../types/index";
 
@@ -60,18 +60,51 @@ export const list = query({
 })
 
 /**
- * Defines a mutation named `saveSongStorageId` to save a song's storage ID with its title.
- * 
- * @param {v.id} saveSongStorageId The ID of the storage where the song is saved.
- * @param {v.string()} title The title of the song.
- * 
- * @note The `args` object is defined with `saveSongStorageId` and `title` as its properties,
- * but the mutation handler definition is incomplete in this provided code.
+ * handler function that asynchronously generates an upload URL using the provided context and arguments.
+ *
+ * @param {object} ctx - the context object
+ * @param {type} args - description of args
+ * @return {Promise<type>} a Promise that resolves to the generated upload URL
  */
-// export const saveSongStorageId = mutation({
-//     args: {
-//         saveSongStorageId: v.id("_storage"),
-//         title: v.string(),
-//     },
-//     // The handler function for the mutation should be defined here.
-// })
+export const generateUploadUrl = mutation({
+    args: {},
+    handler: async (ctx, args) => {
+        return await ctx.storage.generateUploadUrl();
+    },
+});
+
+/**
+ * This function...
+ *      - is an API mutation that saves an image storage ID to a user's file record
+ *      - saves the image storage ID to the corresponding file record for the current user
+ *      - handles the request and updates the image storage ID for a user
+ * 
+ * @param {Object} ctx - The context object.
+ * @param {Object} args - The arguments object.
+ * @param {string} args.id - The ID of the user.
+ * @param {string} args.imageStorageId - The ID of the image storage.
+ * @throws {ConvexError} If the user is not authorized or not found.
+ * @return {Promise<Object>} The updated user object.
+ */
+export const saveImageStorageId = mutation({
+    args: {
+        imageStorageId: v.id("_storage"),                           // Validate the imageStorageId parameter as a storage ID
+        id: v.id("files"),                                          // Validate the file record ID parameter as a file ID
+    },
+    handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();          // Retrieve the current user's identity from the context's authentication module
+        if (!identity) throw new ConvexError("Unauthorized");       // Throw an error if the user is not found or not authorized
+
+        const user = await ctx.db                                   // Query the 'users' table for the user with the matching token identifier
+            .query("users")
+            .withIndex("by_token", (q) =>
+                q.eq("tokenIdentifier", identity.tokenIdentifier))
+            .unique();
+
+        if (!user) { throw new ConvexError("User not found."); }
+
+        return await ctx.db.patch(args.id, {                         // Update the file record with the provided ID with the new image storage ID.
+            image: args.imageStorageId,
+        });
+    },
+});
