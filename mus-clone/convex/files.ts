@@ -17,26 +17,24 @@ import { FileWithUrls } from "../types/index";
 export const list = query({
     args: {},
     handler: async (ctx) => {
-        // Verifies the user's identity. Throws an error if identity is not found (Unauthorized).
-        const identity = await ctx.auth.getUserIdentity();
-        if (!identity) { throw new ConvexError("Unauthorized"); }
+        /*************  USER CHECK FOR EACH FILES *************/
+        const identity = await ctx.auth.getUserIdentity();              // Retrieve the current user's identity from the context's authentication module
+        if (!identity) throw new ConvexError("Unauthorized");           // Throw an error if the user is not found or not authorized
 
-        // Retrieves all file entries from the database.
-        const files = await ctx.db.query("files").collect();
+        const files = await ctx.db.query("files").collect();            // Retrieves all file entries from the database
 
-        // Maps over the files to fetch related data and checks for user's favorites.
         return Promise.all(
-            files.map(async (file) => {
-                // Get the URLs for the song and the image from storage.
-                const songUrl = await ctx.storage.getUrl(file.song);
+            files.map(async (file) => {                                 // Maps over the files to fetch related data and checks for user's favorites
+                const songUrl = await ctx.storage.getUrl(file.song);    // Get the URLs for the song and the image from storage
                 let imageUrl = file.image ? await ctx.storage.getUrl(file.image) : null;
 
-                // Check for user existence in the database using their token identifier.
-                const user = await ctx.db
+                const user = await ctx.db                               // Query the 'users' table for the user with the matching token identifier
                     .query("users")
-                    .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+                    .withIndex("by_token", (q) =>
+                        q.eq("tokenIdentifier", identity.tokenIdentifier))
                     .unique();
                 if (user === null) { throw new ConvexError("User doesn't exist in the database!"); }
+                /*************  USER CHECK DONE *************/
 
                 // Check if the current file is a favorite of the user.
                 const favorite = await ctx.db
@@ -74,6 +72,47 @@ export const generateUploadUrl = mutation({
 });
 
 /**
+ * Mutation to save a song's storage ID and title in the files table.
+ * It requires an authenticated user and uses their token identifier to find their user record.
+ * 
+ * @param {ConvexContext} ctx - The mutation context, which includes authentication and database access.
+ * @param {object} args - The arguments for this mutation.
+ * @param {string} args.songStorageId - The storage ID of the song to be saved.
+ * @param {string} args.title - The title of the song.
+ * 
+ * @returns {Promise<object>} A promise that resolves to the new file record that was inserted into the database.
+ * 
+ * @throws {ConvexError} Throws an "Unauthorized" error if no authenticated user is found.
+ * @throws {ConvexError} Throws a "User not found." error if the authenticated user does not have an entry in the users table.
+ */
+export const saveSongStorageId = mutation({
+    args: {
+        songStorageId: v.id("_storage"),
+        title: v.string(),
+    },
+    handler: async (ctx, args) => {
+        /*************  USER CHECK *************/
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new ConvexError("Unauthorized");
+
+        const user = await ctx.db
+            .query("users")
+            .withIndex("by_token", (q) =>
+                q.eq("tokenIdentifier", identity.tokenIdentifier))
+            .unique();
+
+        if (!user) { throw new ConvexError("User not found."); }
+        /************* CHECK DONE *************/
+
+        return await ctx.db.insert("files", {
+            song: args.songStorageId,
+            ownerId: user._id,
+            title: args.title,
+        });
+    },
+});
+
+/**
  * This function...
  *      - is an API mutation that saves an image storage ID to a user's file record
  *      - saves the image storage ID to the corresponding file record for the current user
@@ -92,6 +131,7 @@ export const saveImageStorageId = mutation({
         id: v.id("files"),                                          // Validate the file record ID parameter as a file ID
     },
     handler: async (ctx, args) => {
+        /*************  USER CHECK *************/
         const identity = await ctx.auth.getUserIdentity();          // Retrieve the current user's identity from the context's authentication module
         if (!identity) throw new ConvexError("Unauthorized");       // Throw an error if the user is not found or not authorized
 
@@ -102,6 +142,7 @@ export const saveImageStorageId = mutation({
             .unique();
 
         if (!user) { throw new ConvexError("User not found."); }
+        /*************  CHECK DONE *************/
 
         return await ctx.db.patch(args.id, {                         // Update the file record with the provided ID with the new image storage ID.
             image: args.imageStorageId,
