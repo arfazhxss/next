@@ -1,12 +1,11 @@
-" use client"
-
+"use client";
 import { api } from "@/convex/_generated/api";
 import { useMutation, useQuery } from "convex/react";
 import { useEffect, useState } from "react";
-import { Heart, Play } from "lucide-react"
+import { Heart, Play } from "lucide-react";
 import Image from "next/image";
 import { FileWithUrls } from "@/types";
-import AudioPLayer from "@/components/audio-player"; 
+import AudioPlayer from "@/components/audio-player";
 import { Id } from "@/convex/_generated/dataModel";
 import { cn } from "@/lib/utils";
 
@@ -79,12 +78,27 @@ const Home = () => {
     },[store]);
 
     /**
-     * Sets the state variables to play a song.
+     * Plays a song by setting file ID, current song, artist, cover art, and title.
      *
-     * @param {FileWithUrls} file - The file object containing song URLs and metadata.
+     * @param {FileWithUrls} file - the file with URLs
+     * @return {void} 
      */
     const playSong = (file: FileWithUrls) => {
-    }
+        setFileId(file._id);
+        setCurrentSong(file.songUrl);
+        setArtist(file.owner.fullName);
+        setCoverArt(file.imageUrl);
+        setTitle(file.title);
+    };
+
+    /**
+     * Toggles the value of showFavorites and updates the state accordingly.
+     *
+     * @return {void} This function does not return a value.
+     */
+    const toggleShowFavorites = () => {
+        setShowFavorites(!showFavorites);
+    };
 }
 
 export default Home;
