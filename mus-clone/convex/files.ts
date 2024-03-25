@@ -4,7 +4,8 @@
  */
 
 import { ConvexError } from "convex/values";
-import { query, mutation } from "./_generated/server" // Importing the `query` and `mutation` helper from the Convex-generated server code
+import { query, mutation } from "./_generated/server"; // Importing the `query` and `mutation` helper from the Convex-generated server code
+import { FileWithUrls } from "../types/index";
 
 /**
  * Defines a query named `list` that retrieves and processes information about files.
@@ -52,7 +53,7 @@ export const list = query({
                     songUrl,
                     imageUrl,
                     favorite: favorite !== null,
-                }
+                } as FileWithUrls;
             })
         )
     }

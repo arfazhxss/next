@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Heart, Play } from "lucide-react";
 import Image from "next/image";
 import { FileWithUrls } from "@/types";
-import AudioPlayer from "@/components/audio-player";
+// import AudioPlayer from "@/components/audio-player";
 import { Id } from "@/convex/_generated/dataModel";
 import { cn } from "@/lib/utils";
 
@@ -46,7 +46,7 @@ const Home = () => {
         }
     };
 
-    
+
     /**
      * Handles the action of going to the previous song in the filteredSongList.
      * If the currentIndex is greater than 0, it plays the previous song and updates the currentIndex.
@@ -75,7 +75,7 @@ const Home = () => {
      */
     useEffect(() => {
         store({});
-    },[store]);
+    }, [store]);
 
     /**
      * Plays a song by setting file ID, current song, artist, cover art, and title.
@@ -157,7 +157,7 @@ const Home = () => {
                 </div>
             </div>
 
-            {
+            {/* {
                 fileId && currentSong &&
                 <AudioPlayer
                     id={fileId}
@@ -168,7 +168,7 @@ const Home = () => {
                     handleNext={handleNext}
                     handlePrevious={handlePrevious}
                 />
-            }
+            } */}
         </div>
     );
 }
