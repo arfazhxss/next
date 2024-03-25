@@ -8,7 +8,7 @@ export const Navbar = () => {
         <nav className="bg-slate-950 py-4">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
                 <Link href="/" className="text-white font-bold text-xl">
-                    BeatWave
+                    Music Player
                 </Link>
                 <div className="flex items-center">
                     <AddSongModal />
