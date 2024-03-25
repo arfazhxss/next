@@ -7,7 +7,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-// import { UploadArea } from "@/components/upload-area";
+import { UploadArea } from "@/components/upload-area";
 
 
 export const AddSongModal = () => {
@@ -20,7 +20,7 @@ export const AddSongModal = () => {
             </DialogTrigger>
             <DialogContent className="bg-slate-950 border-0">
                 UploadArea
-                {/* <UploadArea /> */}
+                <UploadArea />
             </DialogContent>
         </Dialog>
     );
